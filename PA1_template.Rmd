@@ -43,12 +43,12 @@ hist <- ggplot(steps.per.day, aes(x=Steps)) +
 hist
 ```
 
-The mean total number of steps:
+The mean total number of steps per day:
 ```{r}
 print(mean.spd)
 ```
 
-The median total number of steps:
+The median total number of steps per day:
 ```{r}
 print(median.spd)
 ```
@@ -66,16 +66,22 @@ mean.steps  <- aggregate(
 
 names(mean.steps) <- c("interval","steps")
 
+max.steps <- mean.steps[which.max(mean.steps$steps),c("interval")]
+
 steps.ts <- ggplot(mean.steps,aes(interval,steps)) +
   ggtitle("Mean Steps vs. Time") +
   geom_line() +
-  xlab("Time (5 minute intervals)")          
+  xlab("Time (5 minute intervals)")  +
+  annotate("text", label = paste("Maximum @ ", format(max.steps)), 
+               x = 1000, hjust = 0, y = 20, vjust = 2, color = "darkred") +
+  geom_vline(xintercept = max.steps <- mean.steps[which.max(mean.steps$steps),c("interval")],
+             color="darkred")
 steps.ts 
 ```
 
 Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
 ```{r}
-mean.steps[which.max(mean.steps$steps),c("interval")]
+max.steps
 ```
 ## Imputing missing values
 
@@ -84,5 +90,62 @@ The total number of missing values in the dataset (i.e. the total number of rows
 nrow(activity.df[is.na(activity.df$steps),])
 ```
 
+```{r}
+library(Hmisc)
+activity.imputed.df <- activity.df
+activity.imputed.df$steps <- with(activity.df, impute(steps, mean))
+```
+
+```{r}
+# Calculate the total number of steps taken per day
+steps.per.day <- aggregate( 
+  x = activity.imputed.df$steps,
+  by = list(activity.imputed.df$date),
+  FUN = sum,
+  na.rm=T)
+  
+names(steps.per.day) <- c("Date", "Steps")
+mean.spd <- mean(steps.per.day$Steps, na.rm=TRUE)
+median.spd <- median(steps.per.day$Steps, na.rm=TRUE)
+library(ggplot2)
+hist <- ggplot(steps.per.day, aes(x=Steps)) +
+  ggtitle("Steps per day") +
+  xlab("Steps") +
+  geom_histogram(binwidth=2000) +
+  annotate("text", label = paste("Mean = ", format(mean.spd)), 
+               x = 0, hjust = 0, y = Inf, vjust = 2, color = "darkred") +
+    annotate("text", label = paste("Median = ", format(median.spd)), 
+               x = 15000, hjust = 0, y = Inf, vjust = 2, color = "darkgreen") +
+  geom_vline(xintercept = mean.spd, color = "darkred") +
+  geom_vline(xintercept = median.spd, color = "darkgreen", linetype=2)
+hist
+```
+
+The mean total number of steps per day:
+```{r}
+print(mean.spd)
+```
+
+The median total number of steps per day:
+```{r}
+print(median.spd)
+```
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+```{r}
+activity.imputed.df$weekday <- as.factor(ifelse(weekdays(activity.imputed.df$date) %in% c("Saturday","Sunday"), "Weekend", "Weekday")) 
+
+steps.per.weekday  <- aggregate(
+                      x = activity.imputed.df$steps , 
+                      by = list(activity.imputed.df$interval,activity.imputed.df$weekday), 
+                      FUN = mean,
+                      na.rm=TRUE)
+names(steps.per.weekday) <- c("interval","weekday","steps")
+
+avg.steps <- ggplot(steps.per.weekday,aes(interval,steps)) +
+                 ggtitle("Mean Steps vs. Time") +
+                 facet_grid(weekday ~ .) +
+                 geom_line()
+avg.steps 
+```
