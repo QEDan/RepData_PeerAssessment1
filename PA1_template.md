@@ -1,14 +1,8 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    fig_width: 6
-    fig_heigh: 4
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 ## Loading and preprocessing the data
 
-```{r}
+
+```r
 #Load the data to a data frame
 
 activity.df <- read.csv("activity.csv")
@@ -18,8 +12,8 @@ activity.df$date <- as.Date(activity.df$date)
 ```
 ## What is mean total number of steps taken per day?
 
-```{r}
-# Calculate the total number of steps taken per day
+
+```r
 steps.per.day <- aggregate( 
   x = activity.df$steps,
   by = list(activity.df$date),
@@ -43,20 +37,32 @@ hist <- ggplot(steps.per.day, aes(x=Steps)) +
 hist
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-2-1.png) 
+
 The mean total number of steps:
-```{r}
+
+```r
 print(mean.spd)
 ```
 
+```
+## [1] 9354.23
+```
+
 The median total number of steps:
-```{r}
+
+```r
 print(median.spd)
+```
+
+```
+## [1] 10395
 ```
 
 ## What is the average daily activity pattern?
 
-```{r}
-#Average number of steps taken, averaged over all days
+
+```r
 mean.steps  <- aggregate(
   x = activity.df$steps , 
   by = list(activity.df$interval), 
@@ -73,16 +79,19 @@ steps.ts <- ggplot(mean.steps,aes(interval,steps)) +
 steps.ts 
 ```
 
-Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
-```{r}
+![](PA1_template_files/figure-html/unnamed-chunk-5-1.png) 
+
+
+
+```r
 mean.steps[which.max(mean.steps$steps),c("interval")]
+```
+
+```
+## [1] 835
 ```
 ## Imputing missing values
 
-The total number of missing values in the dataset (i.e. the total number of rows with NAs)
-```{r}
-nrow(activity.df[is.na(activity.df$steps),])
-```
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
